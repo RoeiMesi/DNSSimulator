@@ -4,12 +4,14 @@ import socket
 def parse_file(records, file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
+        print("----------Parsing Test----------")
         for line in lines:
             line.strip()
             if line:
                 domain, ip, type = line.split(',')
                 records[domain] = (ip, type.strip())
                 print(f"{domain},{ip},{type.strip()}")
+        print("----------Parsing Test----------")
 
 
 def records_response(domain, records):
@@ -17,7 +19,6 @@ def records_response(domain, records):
         if domain == key:
             return f"{key}, {records[key][0]}, {records[key][1]}"
         elif domain.endswith(key):
-            print(f"domain: {domain}, key: {key}")
             if records[key][1] == "NS":
                 return f"{key}, {records[key][0]}, {records[key][1]}"
     return "non-existent domain"
