@@ -1,7 +1,7 @@
 import socket
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.sendto(b'Dean Cohen & Roei Mesilaty', ('192.168.49.131', 12345))
+s.sendto(b'Dean Cohen & Roei Mesilaty', ('127.0.0.1', 12345))
 # print("The data has been sent")
 
 data, addr = s.recvfrom(1024)
