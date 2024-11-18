@@ -17,10 +17,10 @@ def parse_file(records, file_path):
 def records_response(domain, records):
     for key in records:
         if domain == key:
-            return f"{key}, {records[key][0]}, {records[key][1]}"
+            return f"{key},{records[key][0]},{records[key][1]}"
         elif domain.endswith(key):
             if records[key][1] == "NS":
-                return f"{key}, {records[key][0]}, {records[key][1]}"
+                return f"{key},{records[key][0]},{records[key][1]}"
     return "non-existent domain"
 
 

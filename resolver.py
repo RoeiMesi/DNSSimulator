@@ -29,11 +29,12 @@ def add_to_cache(input, cache_time):
     domain, ip, type = input.split(',')
     cache[domain] = (ip, type, time.time() + cache_time)
 
-def forward_to_parent(query, parentIP, parentPort):
+def forward_to_server(query, parentIP, parentPort):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as parent_socket:
         parent_socket.sendto(query.encode('utf-8'), (parentIP, int(parentPort)))
         response, _ = parent_socket.recvfrom(1024)  # Wait for the parent's response
         return response.decode('utf-8')
+    
 
 def main(myPort, parentIP, parentPort, cache_time):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -52,12 +53,37 @@ def main(myPort, parentIP, parentPort, cache_time):
         if cached_response != "non-existent domain":
             s.sendto(cached_response.encode('utf-8'), addr)
         else:
-            parent_response = forward_to_parent(query, parentIP, parentPort)
+            parent_response = forward_to_server(query, parentIP, parentPort)
 
             # Cache the parent's response
             if parent_response != "non-existent domain":
-                print(f"Response from parent: {parent_response}")
-                add_to_cache(parent_response, cache_time)
+                while True:
+                    print(f"Response from parent: {parent_response}")
+                    add_to_cache(parent_response, cache_time)
+
+                    # If the response ends with "A", it's the final answer
+                    if parent_response.endswith("A"):
+                        print("Final response received. Returning to client.")
+                        break
+                    elif parent_response.endswith("NS"):
+                        try:
+                            # Parse the NS record to extract IP and port
+                            suffix_domain, ipport, type = parent_response.split(',')
+                            if ':' not in ipport or type != "NS":
+                                print(f"Invalid NS response format: {parent_response}")
+                                break
+                            serverIP, serverPort = ipport.split(':')
+
+                            # Forward the query to the next server
+                            print(f"Forwarding query '{query}' to {serverIP}:{serverPort}")
+                            parent_response = forward_to_server(query, serverIP, serverPort)
+                        except Exception as e:
+                            print(f"Error parsing or forwarding NS response: {e}")
+                            break
+                    else:
+                        # Unexpected response type
+                        print(f"Unexpected response type: {parent_response}")
+                        break
             
             # Send the parent's response to the client
             s.sendto(parent_response.encode('utf-8'), addr)
