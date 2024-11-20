@@ -33,12 +33,13 @@ def main(myPort, zoneFileName):
     while True:
         data, addr = s.recvfrom(1024)
         domain = data.decode('utf-8').strip()
+        print(f"Server with port {myPort} received message with domain: {domain}")
         answer = records_response(domain, records)
         s.sendto(answer.encode('utf-8'), addr)
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("[myPort], [zoneFileName]") # Testing
+        print("Usage: [myPort], [zoneFileName]") # Testing
         sys.exit(1)
 
     myPort = int(sys.argv[1])
