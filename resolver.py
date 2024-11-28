@@ -6,29 +6,26 @@ import time
 cache = {}
 
 def cache_response(domain):
-    """ Check if the domain is in cache; return cached response or 'non-existent domain'."""
+    """Check if the domain is in cache; return cached response or 'non-existent domain'."""
+    cache_clean() # Clean expired entries before checking the cache
     # Check for an exact match in the cache
     entry = cache.get(domain)
     if entry:
-        if time.time() > entry[2]:
-            del cache[domain]  # Remove expired entry
-            return "non-existent domain"
-        else:
-            return f"{domain},{entry[0]},{entry[1]}"
+        return f"{domain},{entry[0]},{entry[1]}"
 
     # Check for suffix matches (NS records) in the cache
-    for key in cache.keys():
+    for key, entry in cache.items():
         if domain.endswith(key):
-            entry = cache[key]
-            if time.time() > entry[2]:
-                del cache[key]  # Remove expired entry
-                continue  # Continue searching for other possible matches
-            else:
-                if entry[1] == "NS":
-                    return f"{key},{entry[0]},{entry[1]}"
-
+            if entry[1] == "NS":
+                return f"{key},{entry[0]},{entry[1]}"
     # No matching record found in the cache
     return "non-existent domain"
+
+def cache_clean():
+    """Remove expired entries from the cache."""
+    expired_keys = [key for key, entry in cache.items() if time.time() > entry[2]]
+    for key in expired_keys:
+        del cache[key]
 
 def is_valid_domain(domain):
     # Validate the domain format.
