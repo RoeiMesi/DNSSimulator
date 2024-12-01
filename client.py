@@ -14,7 +14,9 @@ def main(serverIP, serverPort):
         if query.lower() == "exit":
             break
 
-        if not query:
+        if not query or '.' not in query or query.startswith('.'):
+            # If the domain is invalid, return "non-existent domain"
+            print("non-existent domain")
             continue
 
         client_socket.sendto(query.encode('utf-8'), server_address)
